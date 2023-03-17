@@ -8,7 +8,10 @@
 #
 
 library(shiny)
+library(ggplot2)
+library(shinyjs)
 
+source("probtreefuncs.R")
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
@@ -21,7 +24,7 @@ ui <- fluidPage(
             sliderInput("n",
                         "Number of splits",
                         min = 2,
-                        max = 20,
+                        max = 10,
                         value = 3),
             sliderInput("pA", "Proability of Event A",min=0,max=1,value=.5 ),
             verbatimTextOutput("pB"),
@@ -34,7 +37,7 @@ ui <- fluidPage(
         # Show a plot of the generated distribution
         mainPanel(
             
-                plotOutput("distPlot", width="100%")
+                plotOutput("distPlot", width="100%", height = "50%")
             
         )
     )
@@ -44,25 +47,26 @@ ui <- fluidPage(
 server <- function(input, output) {
     source("probtreefuncs.R")
     output$pB <- renderText(paste("Probability of Event B:", 1-input$pA))
-    observeEvent(input$go, {
+    #observeEvent(input$probA, {shinyjs::reset("go")})
+    observeEvent({input$n 
+        input$go}, {
         showModal(modalDialog("Hang tight while your tree grows.", footer=NULL))
-     
-    
-    output$distPlot <- renderPlot({
-        pB <- 1-input$pA
-        mat <- matmake(input$n)
-        plt <- ggplot()
-        mat[,6] <- condprob(input$pA, pB, mat)
-        mat[,5] <- 1:nrow(mat)
-        df <- data.frame()
-        
-        for (i in 1:nrow(mat)){
-            plt <- seg_draw(plt, mat[i,1], mat[i,2], mat[i,3],mat[i,4],mat[i,5], mat[i,6])
-            print(plt)
-        }
+        output$distPlot <- renderPlot({
+            pB <- 1-input$pA
+            mat <- matmake(input$n)
+            plt <- ggplot()
+            mat[,6] <- condprob(input$pA, pB, mat,input$n)
+            #mat[,5] <- 1:nrow(mat)
+            #df <- data.frame()
+            
+             for (i in 1:nrow(mat)){
+                plt <- seg_draw(plt, mat[i,1], mat[i,2], mat[i,3],mat[i,4],mat[i,5], mat[i,6])
+                print(plt)
+            }
+            
         removeModal()
-    })
         
+    }, height = 800, width = 600 )
         
         
     })
