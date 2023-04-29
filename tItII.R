@@ -38,7 +38,8 @@ ui <- fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-           plotOutput("distPlot")
+           plotOutput("distPlot"),
+           dataTableOutput("table")
         )
     )
 )
@@ -52,7 +53,7 @@ server <- function(input, output) {
       set.seed(8723264)         # Create example data
       x <- rnorm(100000, input$tm, input$ts)
       y <- rnorm(100000, input$sm, input$ss)
-      plot(density(x), main ="Type I and Type II error", ylim = c(0,max(max(dnorm(y)), max(dnorm(x)))+.1))          # Plot density of x
+      plot(density(x), main ="Type I and Type II error",  xlab = "Mean", ylim = c(0,max(max(dnorm(y)), max(dnorm(x)))+.1))          # Plot density of x
            #xlim = c(- 6, 6),
            #ylim = c(0, 0.4))
       lines(density(y))
@@ -84,6 +85,16 @@ server <- function(input, output) {
               c(yBeta,0, 0), col='blue')
       legend("topleft", legend=c("Alpha", "Beta", "Power"),
              col=c("red", "blue", "purple"), lty=1, cex=0.8)
+    })
+    
+    output$table <- renderDataTable({
+      beta <- 1-pnorm(input$tm - qnorm(input$a)*input$ts, input$sm, input$ss)
+      tab <- data.frame(matrix(nrow=2, ncol=2))
+      tab$'Null Hypothesis is' <- c("Rejected", "Not rejected")
+      tab$'True' <- c(paste("Type I Error False Positive Probability", as.character(input$a)), paste("Correct decision True Negative Probability", as.character(1-input$a)))
+      tab$'False' <-  c(paste("Correct decision True Positive Probability", as.character(1-beta)), paste("Type II Error False Negative Probability", as.character(beta)))
+      tab <- tab[,-c(1:2)]
+      print(tab)
     })
 }
 
