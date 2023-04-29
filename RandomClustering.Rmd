@@ -1,0 +1,52 @@
+---
+title: "Random Clustering"
+author: "Marieke Sorge"
+date: "4/29/2023"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Let's take a look at how we can randomly generate clusters. 
+
+```{r eruptions, echo=FALSE}
+inputPanel(
+  sliderInput("n_breaks", label = "Number of bins:",
+              min=5, max=25, value=10, step=1),
+  
+  sliderInput("samples", label = "Total Samples",
+              min = 2, max = 100, value = 20, step = 1),
+  sliderInput("clustdist", label = "Distance to be considered a cluster",
+              min = 1, max = 10, value = 1, step = 1), 
+  #actionButton("retake","Retake The Sample")
+)
+
+renderPlot( {
+  x <- y <- seq(0,input$n_breaks)
+  plot(NULL, xlab="", ylab="", xaxt="n", yaxt="n",xlim=c(0, input$n_breaks), ylim=c(0, input$n_breaks))
+  abline(v=y, col="red")
+  abline(h=x, col="red")
+  samps <- cbind(runif(input$samples, min=0, max=input$n_breaks), runif(input$samples, min=0, max=input$n_breaks))
+  points(samps,pch = 19 )
+  dist <- data.frame(matrix( ncol=input$samples, nrow= input$samples))
+  for(i in 1:input$samples){
+    for(j in 1:input$samples){
+      dist[i,j] <- sqrt((samps[i,1]  - samps[j,1])^2 + (samps[i,2]  - samps[j,2])^2)
+    } }
+    
+    clusts <- as.matrix((which(dist>0 & dist<input$clustdist,arr.ind=TRUE)), ncol=2)
+    for (i in 1:nrow(clusts)){
+    segments(samps[clusts[i,1],1],samps[clusts[i,1],2],samps[clusts[i,2],1],samps[clusts[i,2],2])
+    }
+})
+
+
+
+```
+
+Points that are less than the "culstring distance" apart will have lines connecting them. 
+
+
